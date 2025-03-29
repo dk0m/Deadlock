@@ -7,7 +7,7 @@ A PoC For Bypassing Browser File Locks Without Process Termination.
 
 Deadlock enumerates all instances of a process, Enumerates the private handle table of each respective instance, Filters only for file handles that are of disk type after duplication, Searches for a specific file with a tag, If the file is found, Deadlock unlocks it by remotely calling NtClose on it and optionally dumps the file as well.
 
-In this example, We unlock the Cookies file of the Chrome browser, But you can make it work with any browser.
+In this example, We unlock the Cookies file of the specified browser, But you can make it work with any browser and file.
 
 ## Usage
 ```
