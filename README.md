@@ -11,7 +11,7 @@ In this example, We unlock the Cookies file of the Chrome browser, But you can m
 
 ## Usage In Malware
 
-> **Warning**
+> ⚠️ **Warning**
 
 I'm not responsible for whatever you do with this software.
  
