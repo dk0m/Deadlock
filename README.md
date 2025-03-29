@@ -12,8 +12,8 @@ In this example, We unlock the Cookies file of the Chrome browser, But you can m
 ## Usage
 ```
 $ deadlock.exe <TARGET_PROCESS> <LOCKED_FILE_TAG> <OUTPUT_FILE (Optional)
-
 ```
+
 ## Using This In Malware
 
 This could be utilized by malware authors (specifically stealer developers) to remove locks on files they are interested in (Cookies, Web Data, etc) without making too much noise, While this is possible, I do NOT encourage you to use this for malicious purposes.
