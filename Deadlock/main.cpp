@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 
                     if (isDesiredFile(filePath, lockedFileTag)) {
 
-                        printf("[+] Found Target Cookie File (Chrome Instance PID: %ld)\n", GetProcessId(procInstance));
+                        printf("[+] Found Target Cookie File (Instance PID: %ld)\n", GetProcessId(procInstance));
 
                         deadlock::remoteCloseHandle(procInstance, handleInfo.HandleValue);
                         CloseHandle(fileHandle);
