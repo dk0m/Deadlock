@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 
                                 CloseHandle(newFileHandle);
                                 CloseHandle(outputFileHandle);
-
+                                HeapFree(GetProcessHeap(), 0, fileBuffer);
                              }
 
                         }
