@@ -12,6 +12,7 @@ In this example, We unlock the Cookies file of the Chrome browser, But you can m
 ## Usage In Malware
 
 > **Warning**
+
 I'm not responsible for whatever you do with this software.
  
 This could be utilized by malware authors (specifically stealer developers) to remove locks on files they are interested in (Cookies, Web Data, etc) without making too much noise.
