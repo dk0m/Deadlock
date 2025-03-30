@@ -7,11 +7,15 @@ A PoC For Bypassing Browser File Locks Without Process Termination.
 
 Deadlock enumerates all instances of a process, Enumerates the private handle table of each respective instance, Filters only for file handles that are of disk type after duplication, Searches for a specific file with a tag, If the file is found, Deadlock unlocks it by remotely calling NtClose on it and optionally dumps the file as well.
 
-In this example, We unlock the Cookies file of the specified browser, But you can make it work with any browser and file.
-
 ## Usage
 ```
-$ deadlock.exe <TARGET_PROCESS> <LOCKED_FILE_TAG> <OUTPUT_FILE (Optional)
+$ deadlock.exe <TARGET_PROCESS> <LOCKED_FILE_TAG> <OUTPUT_FILE (Optional)>
+```
+
+Example (Unlocking & Dumping Chrome cookies):
+
+```
+deadlock.exe chrome.exe Network\Cookies ./ChromeCookies.dmp
 ```
 
 ## Using This In Malware
