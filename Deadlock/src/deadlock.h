@@ -2,6 +2,8 @@
 #include <iostream>
 #include "ntapi.h"
 
+#define FILE_READ_WRITE 0x12019f
+
 typedef struct _PROCESS_HANDLE_TABLE_ENTRY_INFO
 {
     HANDLE HandleValue;
